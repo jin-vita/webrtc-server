@@ -1,5 +1,4 @@
 const http = require("http")
-const { connection } = require("websocket");
 const Socket = require("websocket").server
 const server = http.createServer(() => {
 })
@@ -18,9 +17,8 @@ webSocket.on('request', (req) => {
 
     connection.on('message', (message) => {
         const data = JSON.parse(message.utf8Data)
+        console.log(data);
         const user = findUser(data.name)
-
-        console.log(data)
 
         switch (data.type) {
             // {"type":"store_user","name":"Phil"}
@@ -53,10 +51,12 @@ webSocket.on('request', (req) => {
                         data: 'user is not online'
                     }))
                 }
+
                 break
 
             case 'create_offer':
                 let userToReceiveOffer = findUser(data.target)
+
                 if (userToReceiveOffer) {
                     userToReceiveOffer.conn.send(JSON.stringify({
                         type: 'offer_received',
@@ -69,7 +69,7 @@ webSocket.on('request', (req) => {
             case 'create_answer':
                 let userToReceiveAnswer = findUser(data.target)
                 if (userToReceiveAnswer) {
-                    userToReceiveAnswer.send(JSON.stringify({
+                    userToReceiveAnswer.conn.send(JSON.stringify({
                         type: 'answer_received',
                         name: data.name,
                         data: data.data.sdp
@@ -105,8 +105,6 @@ webSocket.on('request', (req) => {
 
 const findUser = username => {
     for (let i = 0; i < users.length; i++) {
-        if (users[i].name === username) {
-            return users[i]
-        }
+        if (users[i].name === username) return users[i]
     }
 }
